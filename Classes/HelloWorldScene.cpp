@@ -1,80 +1,119 @@
 #include "HelloWorldScene.h"
+#include "PageView.h"
+#include "PageNode.h"
 
 USING_NS_CC;
 
 CCScene* HelloWorld::scene()
 {
-    // 'scene' is an autorelease object
-    CCScene *scene = CCScene::create();
-    
-    // 'layer' is an autorelease object
-    HelloWorld *layer = HelloWorld::create();
+	// 'scene' is an autorelease object
+	CCScene *scene = CCScene::create();
 
-    // add layer as a child to scene
-    scene->addChild(layer);
+	// 'layer' is an autorelease object
+	HelloWorld *layer = HelloWorld::create();
 
-    // return the scene
-    return scene;
+	// add layer as a child to scene
+	scene->addChild(layer);
+
+	// return the scene
+	return scene;
 }
 
 // on "init" you need to initialize your instance
 bool HelloWorld::init()
 {
-    //////////////////////////////
-    // 1. super init first
-    if ( !CCLayer::init() )
-    {
-        return false;
-    }
-    
-    CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
-    CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
+	//////////////////////////////
+	// 1. super init first
+	if (!CCLayer::init())
+	{
+		return false;
+	}
 
-    /////////////////////////////
-    // 2. add a menu item with "X" image, which is clicked to quit the program
-    //    you may modify it.
+	CCDirector *pDirector = CCDirector::sharedDirector();
+	pDirector->getTouchDispatcher()->addTargetedDelegate(this, 0, false);
 
-    // add a "close" icon to exit the progress. it's an autorelease object
-    CCMenuItemImage *pCloseItem = CCMenuItemImage::create(
-                                        "CloseNormal.png",
-                                        "CloseSelected.png",
-                                        this,
-                                        menu_selector(HelloWorld::menuCloseCallback));
-    
-	pCloseItem->setPosition(ccp(origin.x + visibleSize.width - pCloseItem->getContentSize().width/2 ,
-                                origin.y + pCloseItem->getContentSize().height/2));
+	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
-    // create menu, it's an autorelease object
-    CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
-    pMenu->setPosition(CCPointZero);
-    this->addChild(pMenu, 1);
+	CCMenuItemImage *pCloseItem = CCMenuItemImage::create(
+		"CloseNormal.png",
+		"CloseSelected.png",
+		this,
+		menu_selector(HelloWorld::menuCloseCallback));
 
-    /////////////////////////////
-    // 3. add your codes below...
+	pCloseItem->setPosition(ccp(origin.x + visibleSize.width - pCloseItem->getContentSize().width / 2,
+		origin.y + pCloseItem->getContentSize().height / 2));
 
-    // add a label shows "Hello World"
-    // create and initialize a label
-    
-    CCLabelTTF* pLabel = CCLabelTTF::create("Hello World", "Arial", 24);
-    
-    // position the label on the center of the screen
-    pLabel->setPosition(ccp(origin.x + visibleSize.width/2,
-                            origin.y + visibleSize.height - pLabel->getContentSize().height));
+	// create menu, it's an autorelease object
+	CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
+	pMenu->setPosition(CCPointZero);
+	this->addChild(pMenu, 1);
 
-    // add the label as a child to this layer
-    this->addChild(pLabel, 1);
+	CCSprite* pSprite = CCSprite::create("HelloWorld.png");
+	pSprite->setPosition(ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
+	this->addChild(pSprite, 0);
 
-    // add "HelloWorld" splash screen"
-    CCSprite* pSprite = CCSprite::create("HelloWorld.png");
+	auto size = ccp(visibleSize.width, visibleSize.height / 4);
+	PageView *pageView = PageView::create(size);
+	pageView->setPosition(ccp(visibleSize.width / 2, visibleSize.height));
+	for (int i = 0; i < 4; i++)
+	{
+		auto node = PageNode::create(size, "banner.png", "http://desk.fd.zol-img.com.cn/t_s1920x1080c5/g5/M00/00/0C/ChMkJ1gF5IyIVpQZAAfWfSNJAuoAAXABwHjE1wAB9aV014.jpg");
+		pageView->addNode(node);
+	}
+	addChild(pageView);
 
-    // position the sprite on the center of the screen
-    pSprite->setPosition(ccp(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-
-    // add the sprite as a child to this layer
-    this->addChild(pSprite, 0);
-    
-    return true;
+	return true;
 }
+
+void HelloWorld::explodeFire(float dt){
+	CCParticleExplosion *pEmitter = CCParticleExplosion::create();
+	pEmitter->setTexture(CCTextureCache::sharedTextureCache()->addImage("fire.png"));
+	pEmitter->setAutoRemoveOnFinish(true);
+
+	pEmitter->setPosition(mPoint);
+
+	//Size
+	pEmitter->setStartSize(3.0);
+	pEmitter->setStartSizeVar(5.0);
+
+	//pEmitter->setTotalParticles(10);
+
+	pEmitter->setRadialAccel(10.0);
+	pEmitter->setRadialAccelVar(0.0);
+
+	pEmitter->setLife(0.2f);
+	pEmitter->setLifeVar(1.5f);
+
+	pEmitter->setDuration(0.5);
+
+	addChild(pEmitter);
+
+}
+
+
+bool HelloWorld::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
+	int x = pTouch->getLocation().x;
+	int y = pTouch->getLocation().y;
+	mPoint = ccp(x, y);
+	schedule(schedule_selector(HelloWorld::explodeFire), 0.0f);
+	return true;
+}
+
+void HelloWorld::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent){
+	int x = pTouch->getLocation().x;
+	int y = pTouch->getLocation().y;
+	mPoint = ccp(x, y);
+}
+
+void HelloWorld::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent){
+	unschedule(schedule_selector(HelloWorld::explodeFire));
+}
+
+void HelloWorld::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
+
+}
+
 
 
 void HelloWorld::menuCloseCallback(CCObject* pSender)
@@ -82,9 +121,11 @@ void HelloWorld::menuCloseCallback(CCObject* pSender)
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT) || (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
 	CCMessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");
 #else
-    CCDirector::sharedDirector()->end();
+	CCDirector::sharedDirector()->end();
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    exit(0);
+	exit(0);
 #endif
 #endif
 }
+
+
