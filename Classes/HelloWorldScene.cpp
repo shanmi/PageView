@@ -52,7 +52,7 @@ bool HelloWorld::init()
 	CCSprite* pSprite = CCSprite::create("HelloWorld.png");
 	pSprite->setPosition(ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
 	this->addChild(pSprite, 0);
-
+	 
 	auto size = ccp(visibleSize.width, visibleSize.height / 4);
 	PageView *pageView = PageView::create(size);
 	pageView->setPosition(ccp(visibleSize.width / 2, visibleSize.height));
